@@ -1,4 +1,4 @@
-import { App, Modal, Notice, Plugin, Setting, TFile } from "obsidian";
+import { App, Modal, Notice, Plugin, Setting, TAbstractFile, TFile } from "obsidian";
 import { DEFAULT_SETTINGS, HealthSyncSettings, HealthSyncSettingTab } from "./settings";
 import { ManualLoginModal } from "./ui/manual-login-modal";
 import { SyncManager } from "./sync";
@@ -49,7 +49,7 @@ function dateFormatToRegex(format: string): RegExp {
 			}
 		}
 
-		const token = DATE_TOKENS.find(t => format.startsWith(t.token, i));
+		const token = DATE_TOKENS.find(candidate => format.startsWith(candidate.token, i));
 		if (token) {
 			pattern += seen.has(token.token)
 				? `\\k<${token.group}>`
@@ -147,30 +147,14 @@ export default class HealthSyncPlugin extends Plugin {
 
 			// When "create daily note when missing" is off, the auto-sync waits for
 			// the note. Resume it the moment a real daily note within the sync window
-			// is created (by the user or another process). Registered here, not in
-			// onload, so it doesn't fire for every existing file during the initial
-			// vault load.
-			this.registerEvent(
-				this.app.vault.on("create", (file) => {
-					if (!this.settings.autoSync || this.settings.createDailyNoteIfMissing) return;
-					// Don't react to notes that backfill is creating right now.
-					if (this.backfillRunning) return;
-					if (!(file instanceof TFile)) return;
-					// Same formatDate()-based matcher the existence gate uses, so the
-					// trigger and the gate agree (handles subfolders/moment tokens and
-					// ignores 0-byte placeholders).
-					const noteDate = matchDailyNoteDate(this.app, file, this.autoSyncWindowDates(), {
-						dailyNotePath: this.settings.dailyNotePath,
-						dailyNoteFormat: this.settings.dailyNoteFormat,
-					});
-					if (noteDate) {
-						// Force past the 30s trigger-debounce: the startup sync may have
-						// just set the timestamp, and a freshly created note must not be
-						// swallowed by it.
-						void this.tryAutoSync({ force: true });
-					}
-				})
-			);
+			// shows up. "create" alone is not enough: Templater, the Calendar plugin
+			// and vault sync engines all create the file empty first and fill it in a
+			// separate step, which only surfaces as "modify" — and an empty note is
+			// deliberately not accepted as existing. Registered here, not in onload,
+			// so create doesn't fire for every existing file during the initial vault
+			// load.
+			this.registerEvent(this.app.vault.on("create", file => this.onDailyNoteMaybeReady(file)));
+			this.registerEvent(this.app.vault.on("modify", file => this.onDailyNoteMaybeReady(file)));
 		});
 
 		// Auto-sync when opening today's/yesterday's daily note
@@ -275,6 +259,36 @@ export default class HealthSyncPlugin extends Plugin {
 			dates.push(this.dateString(d));
 		}
 		return dates;
+	}
+
+	/**
+	 * Vault create/modify handler for the wait-for-note mode: resumes the auto-sync
+	 * as soon as a daily note within the sync window has actual content.
+	 *
+	 * Self-limiting on purpose. Every branch that ends a sync attempt for a date
+	 * writes `lastSyncTimes[date]` (success, no-data and transient error alike), and
+	 * only "skipped-missing-note" leaves it unset. So an existing entry means the
+	 * date is no longer waiting, and further edits to that note must not each kick
+	 * off another pass — which is what makes it safe to hang this off "modify".
+	 */
+	private onDailyNoteMaybeReady(file: TAbstractFile): void {
+		if (!this.settings.autoSync || this.settings.createDailyNoteIfMissing) return;
+		// Don't react to notes that backfill is writing right now.
+		if (this.backfillRunning) return;
+		if (!(file instanceof TFile)) return;
+
+		// Same formatDate()-based matcher the existence gate uses, so the trigger and
+		// the gate agree (handles subfolders/moment tokens, ignores 0-byte stubs).
+		const noteDate = matchDailyNoteDate(file, this.autoSyncWindowDates(), {
+			dailyNotePath: this.settings.dailyNotePath,
+			dailyNoteFormat: this.settings.dailyNoteFormat,
+		});
+		if (!noteDate) return;
+		if (this.settings.lastSyncTimes[noteDate]) return;
+
+		// Force past the 30s trigger-debounce: the startup sync may have just set the
+		// timestamp, and a note that only now became syncable must not be swallowed.
+		void this.tryAutoSync({ force: true });
 	}
 
 	private async runAutoSync(datesToSync: string[]): Promise<void> {

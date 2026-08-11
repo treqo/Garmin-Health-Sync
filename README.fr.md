@@ -112,7 +112,9 @@ Les sous-dossiers manquants sont créés automatiquement.
 
 ### Synchronisation automatique
 
-À chaque démarrage d'Obsidian, le plugin vérifie les 7 derniers jours et complète automatiquement les données de santé manquantes. Aucune action requise.
+À chaque démarrage d'Obsidian, le plugin vérifie les 7 derniers jours et complète automatiquement les données de santé manquantes. Aucune action requise. Par défaut, il crée la note quotidienne lorsqu'elle est absente.
+
+Si un autre outil gère vos notes quotidiennes (Templater, le plugin Calendar, une synchronisation externe), désactivez **Créer la note quotidienne si absente** dans les paramètres. La synchronisation automatique attend alors qu'une vraie note quotidienne (non vide) existe et se déclenche dès qu'elle apparaît ; les notes placeholder vides de 0 octet sont ignorées. La synchronisation manuelle et le backfill créent toujours les notes manquantes, quel que soit ce paramètre.
 
 ### Synchronisation manuelle
 

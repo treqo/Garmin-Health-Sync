@@ -70,27 +70,34 @@ export function dailyNoteExists(
 
 /**
  * Given a freshly observed file, returns which of `candidateDates` it is the
- * daily note for, or null. Resolves the expected note via the SAME formatDate()
- * + recursive lookup that dailyNoteExists() uses, so the create-trigger and the
- * existence gate agree on what counts as a daily note — including formats with
- * extra moment tokens (ddd, MMM, …) or subfolders, which the basename-regex in
- * main.ts cannot handle.
+ * daily note for, or null. Resolves the expected file name via the SAME
+ * formatDate() the existence gate uses, so trigger and gate agree on what counts
+ * as a daily note — including formats with extra moment tokens (ddd, MMM, …) or
+ * subfolders, which the basename-regex in main.ts cannot handle.
+ *
+ * This runs on every vault create/modify event, so it only ever compares paths:
+ * it mirrors the two lookup steps of findDailyNoteRecursive() (exact target path,
+ * then same file name anywhere below the folder) without walking the vault.
  *
  * Empty (0-byte) placeholders return null, mirroring dailyNoteExists(): an empty
  * stub must not trigger a catch-up sync.
  */
 export function matchDailyNoteDate(
-	app: App,
 	file: TFile,
 	candidateDates: string[],
 	options: { dailyNotePath: string; dailyNoteFormat: string }
 ): string | null {
 	if (file.stat.size === 0) return null;
+
+	// Cheap rejection first: anything outside the daily-note folder can never match.
+	const basePath = options.dailyNotePath.replace(/^\/+|\/+$/g, "");
+	if (basePath && !file.path.startsWith(basePath + "/")) return null;
+
 	for (const date of candidateDates) {
 		const fileName = formatDate(date, options.dailyNoteFormat);
-		if (findDailyNoteRecursive(app, fileName, options.dailyNotePath) === file) {
-			return date;
-		}
+		if (file.path === normalizePath(`${options.dailyNotePath}/${fileName}.md`)) return date;
+		// A format with "/" pins the note to an exact subfolder — no name-only match.
+		if (!fileName.includes("/") && file.name === `${fileName}.md`) return date;
 	}
 	return null;
 }

@@ -112,7 +112,9 @@ Las subcarpetas que falten se crean automáticamente.
 
 ### Sincronización automática
 
-Al iniciar Obsidian, el plugin comprueba los últimos 7 días y completa automáticamente los datos de salud faltantes. No requiere acción manual.
+Al iniciar Obsidian, el plugin comprueba los últimos 7 días y completa automáticamente los datos de salud faltantes. No requiere acción manual. Por defecto crea una nota diaria cuando falta.
+
+Si otra herramienta gestiona tus notas diarias (Templater, el plugin Calendar, una sincronización externa), desactiva **Crear nota diaria si falta** en los ajustes. La sincronización automática espera entonces hasta que exista una nota diaria real (no vacía) y sincroniza en cuanto aparece; las notas placeholder vacías de 0 bytes se ignoran. La sincronización manual y el backfill siempre crean las notas que falten, independientemente de este ajuste.
 
 ### Sincronización manual
 
