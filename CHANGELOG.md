@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.10.3-beta.3
+
+### Fixed
+
+- **Create daily note when missing** (off): the sync now also resumes when a note that was created empty later gets its content. Previously only the note's creation was watched, and an empty note is deliberately not accepted as existing — so the exact setups this setting is for (the Calendar plugin creating a placeholder, Templater filling it afterwards, a note arriving through vault sync in two steps) kept waiting until the next Obsidian start. The follow-up sync fires once per waiting day; editing an already synced note does not trigger anything.
+
+### Internal
+
+- The vault event handler for the wait-for-note mode no longer walks the vault. It compares paths instead of searching for the expected note, so unrelated file activity anywhere in the vault costs nothing.
+
 ## 0.10.3-beta.2
 
 ### Added
