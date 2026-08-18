@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.10.3
+
+### Added
+
+- New setting **Create daily note when missing**, on by default, which keeps the previous behaviour. Switched off, the background auto-sync stops creating daily notes on its own: it waits until a real daily note for that day exists and only then writes the health data into it. This is for setups where another tool owns note creation, such as a template plugin, the Calendar plugin, or notes arriving from another device through a sync plugin.
+  - A waiting day costs no Garmin request and gets no cooldown. It syncs as soon as the note has content, whether the note is created with its content, filled in a second step by a template, or arrives through a vault sync.
+  - Empty placeholder notes, for example the 0-byte file a click in the Calendar plugin creates, do not count as existing yet.
+  - Manual **Sync current note** and **Backfill** are unaffected and still create notes, since they are explicit user actions.
+
+### Fixed
+
+- Daily notes whose filename format contains `/` (for example `YYYY/YYYY-MM-DD`, a common setting in the core Daily Notes plugin that this plugin adopts automatically) were written to the right subfolder but no longer recognised as daily notes: auto-sync did not trigger when opening them, and **Sync current note** silently fell back to yesterday's date instead of the date of the open note. The date is now recovered from the note path relative to the configured folder instead of from the filename alone. Formats without `/` keep matching at any depth below the configured folder, so existing setups are unaffected.
+- The filename format now also understands moment's literal escapes, so a format like `YYYY-MM-DD [Workout]` is recognised as well. Repeated tokens must agree, so `YYYY/YYYY-MM-DD` no longer matches a note filed under the wrong year.
+
+### Documentation
+
+- The readme (all languages) documents how folder, filename format and date-based subfolders interact, including examples, and describes the new setting.
+
 ## 0.10.3-beta.3
 
 ### Fixed
