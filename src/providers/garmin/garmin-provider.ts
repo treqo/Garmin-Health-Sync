@@ -111,8 +111,17 @@ export class GarminProvider implements HealthProvider {
 		const metrics: Record<string, number | string> = {};
 
 		const requests: Promise<void>[] = [];
-		const merge = (label: string, data: Record<string, number | string>): void => {
+		const merge = (label: string, data: Record<string, number | string>, raw?: unknown): void => {
 			console.debug(`Garmin Health Sync: Mapper [${label}] →`, JSON.stringify(data));
+			// Diagnostic (issue #8): a non-empty response that maps to nothing means
+			// the payload shape differs from what the mapper expects. Log the
+			// top-level key names only (no values) so bug reports show the shape.
+			if (Object.keys(data).length === 0 && raw != null && typeof raw === "object") {
+				const keys = Array.isArray(raw)
+					? `array[${raw.length}]` + (raw.length > 0 && raw[0] != null && typeof raw[0] === "object" ? `: ${Object.keys(raw[0] as object).join(", ")}` : "")
+					: Object.keys(raw).join(", ") || "(none)";
+				console.debug(`Garmin Health Sync: Mapper [${label}] got data but mapped nothing — response keys: ${keys}`);
+			}
 			Object.assign(metrics, data);
 		};
 		const warnOrRethrowAuth = (label: string, error: unknown): void => {
@@ -126,7 +135,7 @@ export class GarminProvider implements HealthProvider {
 		if (needsSummary) {
 			requests.push(
 				this.api.fetchDailySummary(date)
-					.then(data => merge("dailySummary", mapDailySummary(data, enabled)))
+					.then(data => merge("dailySummary", mapDailySummary(data, enabled), data))
 					.catch(e => warnOrRethrowAuth("Daily summary", e))
 			);
 		}
@@ -137,7 +146,7 @@ export class GarminProvider implements HealthProvider {
 		if (needsSleep) {
 			requests.push(
 				this.api.fetchSleepData(date)
-					.then(data => merge("sleep", mapSleepData(data, enabled)))
+					.then(data => merge("sleep", mapSleepData(data, enabled), data))
 					.catch(e => warnOrRethrowAuth("Sleep data", e))
 			);
 		}
@@ -146,7 +155,7 @@ export class GarminProvider implements HealthProvider {
 		if (enabled.has("hrv")) {
 			requests.push(
 				this.api.fetchHrv(date)
-					.then(data => merge("hrv", mapHrvData(data, enabled)))
+					.then(data => merge("hrv", mapHrvData(data, enabled), data))
 					.catch(e => warnOrRethrowAuth("HRV", e))
 			);
 		}
@@ -155,7 +164,7 @@ export class GarminProvider implements HealthProvider {
 		if (enabled.has("body_battery")) {
 			requests.push(
 				this.api.fetchBodyBattery(date)
-					.then(data => merge("bodyBattery", mapBodyBattery(data, enabled)))
+					.then(data => merge("bodyBattery", mapBodyBattery(data, enabled), data))
 					.catch(e => warnOrRethrowAuth("Body Battery", e))
 			);
 		}
@@ -164,7 +173,7 @@ export class GarminProvider implements HealthProvider {
 		if (enabled.has("spo2")) {
 			requests.push(
 				this.api.fetchSpO2(date)
-					.then(data => merge("spo2", mapSpO2(data, enabled)))
+					.then(data => merge("spo2", mapSpO2(data, enabled), data))
 					.catch(e => warnOrRethrowAuth("SpO2", e))
 			);
 		}
@@ -173,7 +182,7 @@ export class GarminProvider implements HealthProvider {
 		if (enabled.has("respiration_rate")) {
 			requests.push(
 				this.api.fetchRespiration(date)
-					.then(data => merge("respiration", mapRespiration(data, enabled)))
+					.then(data => merge("respiration", mapRespiration(data, enabled), data))
 					.catch(e => warnOrRethrowAuth("Respiration", e))
 			);
 		}
@@ -182,7 +191,7 @@ export class GarminProvider implements HealthProvider {
 		if (enabled.has("weight_kg") || enabled.has("body_fat_pct")) {
 			requests.push(
 				this.api.fetchWeight(date)
-					.then(data => merge("weight", mapWeight(data, enabled)))
+					.then(data => merge("weight", mapWeight(data, enabled), data))
 					.catch(e => warnOrRethrowAuth("Weight", e))
 			);
 		}
@@ -191,7 +200,7 @@ export class GarminProvider implements HealthProvider {
 		if (enabled.has("training_readiness")) {
 			requests.push(
 				this.api.fetchTrainingReadiness(date)
-					.then(data => merge("trainingReadiness", mapTrainingReadiness(data, enabled)))
+					.then(data => merge("trainingReadiness", mapTrainingReadiness(data, enabled), data))
 					.catch(e => warnOrRethrowAuth("Training Readiness", e))
 			);
 		}
@@ -200,7 +209,7 @@ export class GarminProvider implements HealthProvider {
 		if (enabled.has("training_status") || enabled.has("vo2_max")) {
 			requests.push(
 				this.api.fetchTrainingStatus(date)
-					.then(data => merge("trainingStatus", mapTrainingStatus(data, enabled)))
+					.then(data => merge("trainingStatus", mapTrainingStatus(data, enabled), data))
 					.catch(e => warnOrRethrowAuth("Training Status", e))
 			);
 		}
