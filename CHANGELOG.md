@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.10.4-beta.1
+
+### Added
+
+- New optional metrics `body_battery_min` and `body_battery_max`: the lowest and highest body battery level of the day, taken from Garmin's level time series. This is what the Garmin app shows in its history. Off by default like the other extended metrics. (#10)
+
+### Changed
+
+- Diagnostics for empty mapper results (#8): when an endpoint returns data but the mapper produces nothing, the console now lists the top-level key names of the response (names only, no values). This makes an unexpected payload shape visible directly in a bug report.
+
+- `body_battery` now reads only Garmin's `charged` field, the sum of all body battery gains over the day. The previous fallbacks to other fields (`bodyBatteryMostRecentValue`, `chargedValue`, ...) mixed a level with a daily sum and are gone: if `charged` is missing, the value is simply not written. The readme (all languages) now explains what the value means. (#10)
+
 ## 0.10.3
 
 ### Added
