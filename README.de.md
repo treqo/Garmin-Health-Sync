@@ -39,6 +39,8 @@ workout_location: Bad Honnef, Deutschland
 ---
 ```
 
+**Body Battery:** `body_battery` ist Garmins *charged*-Wert, also die Summe aller Body-Battery-Zuwächse des Tages (überwiegend die nächtliche Aufladung), nicht der aktuelle Stand. Für den Tiefst- und Höchststand des Tages, wie ihn die Garmin-App im Verlauf zeigt, `body_battery_min` und `body_battery_max` aktivieren.
+
 ### Aktivitäten
 
 Jedes Workout wird als Frontmatter-Key mit einer Zusammenfassungs-Zeichenkette geschrieben:

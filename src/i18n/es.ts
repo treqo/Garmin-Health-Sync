@@ -53,6 +53,8 @@ export const es: Record<TranslationKeys, string> = {
 	metric_hrv: "Variabilidad de frecuencia cardíaca",
 	metric_stress: "Nivel de estrés",
 	metric_body_battery: "Body Battery",
+	metric_body_battery_min: "Body Battery (mínimo)",
+	metric_body_battery_max: "Body Battery (máximo)",
 	metric_spo2: "Oxígeno en sangre",
 	metric_respiration_rate: "Frecuencia respiratoria",
 	metric_calories_total: "Calorías totales",

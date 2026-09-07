@@ -161,7 +161,7 @@ export class GarminProvider implements HealthProvider {
 		}
 
 		// Body Battery
-		if (enabled.has("body_battery")) {
+		if (enabled.has("body_battery") || enabled.has("body_battery_min") || enabled.has("body_battery_max")) {
 			requests.push(
 				this.api.fetchBodyBattery(date)
 					.then(data => merge("bodyBattery", mapBodyBattery(data, enabled), data))

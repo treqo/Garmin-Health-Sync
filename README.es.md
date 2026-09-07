@@ -38,6 +38,8 @@ workout_location: Bad Honnef, Deutschland
 ---
 ```
 
+**Body Battery:** `body_battery` es el valor *charged* de Garmin, la suma de todas las ganancias de Body Battery del día (sobre todo la recarga nocturna), no el nivel actual. Activa `body_battery_min` y `body_battery_max` para el nivel más bajo y más alto del día, que es lo que muestra la app de Garmin en su historial.
+
 ### Actividades
 
 Cada entrenamiento se escribe como una clave de frontmatter con una cadena de resumen:

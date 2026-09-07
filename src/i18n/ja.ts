@@ -53,6 +53,8 @@ export const ja: Record<TranslationKeys, string> = {
 	metric_hrv: "心拍変動",
 	metric_stress: "ストレスレベル",
 	metric_body_battery: "ボディバッテリー",
+	metric_body_battery_min: "ボディバッテリー（最低）",
+	metric_body_battery_max: "ボディバッテリー（最高）",
 	metric_spo2: "血中酸素濃度",
 	metric_respiration_rate: "呼吸数",
 	metric_calories_total: "総カロリー",

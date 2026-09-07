@@ -38,6 +38,8 @@ workout_location: Bad Honnef, Deutschland
 ---
 ```
 
+**ボディバッテリー:** `body_battery` は Garmin の *charged* 値で、その日のボディバッテリー増加分の合計（主に睡眠中の回復）であり、現在のレベルではありません。その日の最低値と最高値（Garmin アプリの履歴に表示される値）が必要な場合は `body_battery_min` と `body_battery_max` を有効にしてください。
+
 ### アクティビティ
 
 各ワークアウトはサマリー文字列を持つ frontmatter キーとして記録されます：

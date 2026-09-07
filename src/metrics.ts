@@ -16,6 +16,8 @@ export const METRICS: MetricDefinition[] = [
 
 	// Extended (manually enabled)
 	{ key: "body_battery", type: "number", category: "extended", defaultEnabled: false },
+	{ key: "body_battery_min", type: "number", category: "extended", defaultEnabled: false },
+	{ key: "body_battery_max", type: "number", category: "extended", defaultEnabled: false },
 	{ key: "spo2", type: "number", category: "extended", defaultEnabled: false },
 	{ key: "respiration_rate", type: "number", category: "extended", defaultEnabled: false },
 	{ key: "calories_total", type: "number", category: "extended", defaultEnabled: false },

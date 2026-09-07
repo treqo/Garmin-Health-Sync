@@ -53,6 +53,8 @@ export const zh: Record<TranslationKeys, string> = {
 	metric_hrv: "心率变异性",
 	metric_stress: "压力指数",
 	metric_body_battery: "身体电量",
+	metric_body_battery_min: "身体电量（最低）",
+	metric_body_battery_max: "身体电量（最高）",
 	metric_spo2: "血氧饱和度",
 	metric_respiration_rate: "呼吸频率",
 	metric_calories_total: "总卡路里",

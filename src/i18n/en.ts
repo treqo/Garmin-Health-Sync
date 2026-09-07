@@ -51,6 +51,8 @@ export const en = {
 	metric_hrv: "Heart rate variability",
 	metric_stress: "Stress level",
 	metric_body_battery: "Body battery",
+	metric_body_battery_min: "Body battery (lowest)",
+	metric_body_battery_max: "Body battery (highest)",
 	metric_spo2: "Blood oxygen",
 	metric_respiration_rate: "Respiration rate",
 	metric_calories_total: "Total calories",

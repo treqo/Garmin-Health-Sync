@@ -38,6 +38,8 @@ workout_location: Bad Honnef, Deutschland
 ---
 ```
 
+**身体电量：** `body_battery` 是 Garmin 的 *charged* 值，即当天身体电量所有增量的总和（主要是夜间恢复），而不是当前电量。如需当天的最低值和最高值（即 Garmin 应用历史记录中显示的数值），请启用 `body_battery_min` 和 `body_battery_max`。
+
 ### 活动
 
 每次锻炼以 frontmatter 键加摘要字符串的形式写入：

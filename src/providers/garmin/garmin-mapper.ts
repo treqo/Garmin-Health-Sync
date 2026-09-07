@@ -120,19 +120,64 @@ export function mapHrvData(data: Record<string, unknown>, enabled: Set<string>):
 	return result;
 }
 
-/** Maps body battery data (Garmin returns an object, not an array) */
+/**
+ * Maps the Garmin daily body battery report (one object per day).
+ *
+ * `body_battery` is Garmin's `charged` value: the sum of all body battery
+ * gains over the day (mostly the overnight recharge), not the current level.
+ * `body_battery_min` / `body_battery_max` are taken from the level time series.
+ */
 export function mapBodyBattery(data: Record<string, unknown>, enabled: Set<string>): Record<string, number | string> {
 	const result: Record<string, number | string> = {};
-	if (!enabled.has("body_battery") || Object.keys(data).length === 0) return result;
+	if (Object.keys(data).length === 0) return result;
 
-	// Body battery value may be in different fields
-	const charged = data["charged"]
-		?? get(data, "bodyBatteryStatList.0.charged")
-		?? data["bodyBatteryMostRecentValue"]
-		?? data["chargedValue"];
-	if (charged != null) result["body_battery"] = Number(charged);
+	if (enabled.has("body_battery")) {
+		const charged = data["charged"];
+		if (typeof charged === "number" && Number.isFinite(charged)) result["body_battery"] = charged;
+	}
+
+	const wantMin = enabled.has("body_battery_min");
+	const wantMax = enabled.has("body_battery_max");
+	if (wantMin || wantMax) {
+		const levels = extractBodyBatteryLevels(data);
+		if (levels.length > 0) {
+			if (wantMin) result["body_battery_min"] = Math.min(...levels);
+			if (wantMax) result["body_battery_max"] = Math.max(...levels);
+		}
+	}
 
 	return result;
+}
+
+/**
+ * Reads the body battery levels from `bodyBatteryValuesArray`, an array of
+ * `[timestamp, level]` rows. The column index of the level is taken from
+ * `bodyBatteryValueDescriptorDTOList` when present and defaults to 1.
+ */
+function extractBodyBatteryLevels(data: Record<string, unknown>): number[] {
+	const rows = data["bodyBatteryValuesArray"];
+	if (!Array.isArray(rows)) return [];
+
+	let levelIndex = 1;
+	const descriptors = data["bodyBatteryValueDescriptorDTOList"];
+	if (Array.isArray(descriptors)) {
+		for (const d of descriptors) {
+			if (d != null && typeof d === "object"
+				&& (d as Record<string, unknown>)["bodyBatteryValueDescriptorKey"] === "bodyBatteryLevel"
+				&& typeof (d as Record<string, unknown>)["bodyBatteryValueDescriptorIndex"] === "number") {
+				levelIndex = (d as Record<string, unknown>)["bodyBatteryValueDescriptorIndex"] as number;
+				break;
+			}
+		}
+	}
+
+	const levels: number[] = [];
+	for (const row of rows as unknown[]) {
+		if (!Array.isArray(row)) continue;
+		const level: unknown = (row as unknown[])[levelIndex];
+		if (typeof level === "number" && Number.isFinite(level)) levels.push(level);
+	}
+	return levels;
 }
 
 /** Maps SpO2 data */
